@@ -6,6 +6,7 @@ import dev.booky.vanish.listeners.JoinQuitListener;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CloudVanishMain extends JavaPlugin {
@@ -24,6 +25,8 @@ public class CloudVanishMain extends JavaPlugin {
     public void onLoad() {
         this.manager = new VanishManager(this);
         new Metrics(this, 16837);
+
+        Bukkit.getServicesManager().register(VanishManager.class, this.manager, this, ServicePriority.Normal);
     }
 
     @Override
