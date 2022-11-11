@@ -12,6 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 
@@ -27,23 +28,44 @@ public class ProtectionListener implements Listener {
 
     @EventHandler
     public void onDamage(EntityDamageEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            if (this.manager.isVanished(player)) {
-                // Damage done if using /kill
-                if (event.getDamage() != 3.4028234663852886E38D) {
-                    event.setDamage(0d);
-                }
-            }
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        if (!this.manager.isVanished(player)) {
+            return;
+        }
+
+        // Damage done if using /kill
+        if (event.getDamage() != 3.4028234663852886E38D) {
+            event.setDamage(0d);
+        }
+    }
+
+    @EventHandler
+    public void onFoodChange(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        if (!this.manager.isVanished(player)) {
+            return;
+        }
+
+        // Allow players to eat food
+        if (player.getFoodLevel() > event.getFoodLevel()) {
+            event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onTarget(EntityTargetEvent event) {
-        if (event.getTarget() instanceof Player player) {
-            if (this.manager.isVanished(player)) {
-                event.setCancelled(true);
-            }
+        if (!(event.getTarget() instanceof Player player)) {
+            return;
         }
+        if (!this.manager.isVanished(player)) {
+            return;
+        }
+
+        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -68,10 +90,13 @@ public class ProtectionListener implements Listener {
 
     @EventHandler
     public void onItemPickup(PlayerAttemptPickupItemEvent event) {
-        if (this.manager.isVanished(event.getPlayer())) {
-            if (!event.getPlayer().getPersistentDataContainer().has(this.pickupKey)) {
-                event.setCancelled(true);
-            }
+        if (!this.manager.isVanished(event.getPlayer())) {
+            return;
         }
+        if (event.getPlayer().getPersistentDataContainer().has(this.pickupKey)) {
+            return;
+        }
+
+        event.setCancelled(true);
     }
 }
