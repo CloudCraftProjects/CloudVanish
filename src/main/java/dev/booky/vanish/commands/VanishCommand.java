@@ -109,11 +109,17 @@ public final class VanishCommand {
 
     private void listVanished(CommandSender sender) {
         TextComponent.Builder message = Component.text();
+        int vanishLevel = sender instanceof Player ? this.manager.getVanishLevelOrCalc((Player) sender) : 1337;
         int playerCount = 0;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             Integer level = this.manager.getVanishLevel(player);
             if (level == null) {
+                continue;
+            }
+
+            // sender couldn't see the player, so ignore them
+            if (level > vanishLevel) {
                 continue;
             }
 
