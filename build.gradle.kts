@@ -40,6 +40,11 @@ bukkit {
 tasks {
     runServer {
         minecraftVersion("1.19.2")
+
+        val customJarFile = runDirectory.file("custom-server.jar").get().asFile
+        if (customJarFile.exists()) {
+            serverJar(customJarFile)
+        }
     }
 
     shadowJar {
