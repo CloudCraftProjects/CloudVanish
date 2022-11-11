@@ -7,8 +7,11 @@ import dev.jorel.commandapi.CommandTree;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.arguments.PlayerArgument;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.util.TriState;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -48,6 +51,9 @@ public final class VanishCommand {
                         .then(new PlayerArgument("target")
                                 .withPermission("cloudvanish.command.pickup.other")
                                 .executes((CommandSender sender, Object[] args) -> togglePickup(sender, (Player) args[0]))))
+                .then(new LiteralArgument("list")
+                        .withPermission("cloudvanish.command.list")
+                        .executes((CommandSender sender, Object[] args) -> listVanished(sender)))
                 .register();
     }
 
@@ -99,5 +105,39 @@ public final class VanishCommand {
             player.getPersistentDataContainer().set(this.pickupKey, PersistentDataType.BYTE, (byte) 0);
             sender.sendMessage(VanishManager.getPrefix().append(Component.translatable("vanish.command.pickup.on", NamedTextColor.YELLOW)));
         }
+    }
+
+    private void listVanished(CommandSender sender) {
+        TextComponent.Builder message = Component.text();
+        int playerCount = 0;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Integer level = this.manager.getVanishLevel(player);
+            if (level == null) {
+                continue;
+            }
+
+            if (!message.children().isEmpty()) {
+                message.append(Component.text(", "));
+            }
+
+            playerCount++;
+            message.append(player.teamDisplayName()
+                    .hoverEvent(HoverEvent.showText(Component.translatable()
+                            .key("vanish.command.list.level")
+                            .color(NamedTextColor.AQUA)
+                            .args(Component.text(level)))));
+        }
+
+        String key = playerCount == 0 ? "vanish.command.list.none"
+                : playerCount == 1 ? "vanish.command.list.one"
+                : "vanish.command.list.multiple";
+
+        sender.sendMessage(Component.text()
+                .color(NamedTextColor.YELLOW)
+                .append(VanishManager.getPrefix())
+                .append(Component.translatable(key, Component.text(playerCount), message))
+                .build()
+        );
     }
 }
