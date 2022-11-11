@@ -3,6 +3,7 @@ package dev.booky.vanish;
 
 import dev.booky.vanish.commands.VanishCommand;
 import dev.booky.vanish.listeners.JoinQuitListener;
+import dev.booky.vanish.listeners.ProtectionListener;
 import dev.booky.vanish.util.TranslationLoader;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -44,6 +45,7 @@ public class CloudVanishMain extends JavaPlugin {
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(new JoinQuitListener(this.manager), this);
+        Bukkit.getPluginManager().registerEvents(new ProtectionListener(this.manager), this);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             this.manager.handleLogin(player);
