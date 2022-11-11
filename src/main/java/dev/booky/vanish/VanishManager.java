@@ -4,6 +4,7 @@ package dev.booky.vanish;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.util.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -146,24 +147,33 @@ public class VanishManager {
         return Collections.unmodifiableSet(viewers);
     }
 
-    public boolean toggleVanish(Player player) {
+    public TriState toggleVanish(Player player) {
         boolean nextStatus = !this.isVanished(player);
-        this.setVanished(player, nextStatus);
-        return nextStatus;
+        boolean success = this.setVanished(player, nextStatus);
+
+        if (!success) {
+            return TriState.NOT_SET;
+        }
+
+        return TriState.byBoolean(nextStatus);
     }
 
-    public void setVanished(Player player, boolean vanish) {
+    public boolean setVanished(Player player, boolean vanish) {
         if (vanish) {
-            this.vanish(player);
+            return this.vanish(player);
         } else {
-            this.unvanish(player);
+            return this.unvanish(player);
         }
     }
 
-    public void vanish(Player player) {
+    public boolean vanish(Player player) {
+        if (this.isVanished(player)) {
+            return false;
+        }
+
         int vanishLevel = this.readVanishLevel(player);
         if (vanishLevel <= 0) {
-            return;
+            return false;
         }
 
         Component vanishMessage = Component.text()
@@ -188,12 +198,14 @@ public class VanishManager {
             nonViewer.sendMessage(joinMsg);
             nonViewer.hidePlayer(this.plugin, player);
         }
+
+        return true;
     }
 
-    public void unvanish(Player player) {
+    public boolean unvanish(Player player) {
         Integer vanishLevel = this.getVanishLevel(player);
         if (vanishLevel == null) {
-            return;
+            return false;
         }
 
         Component unvanishMessage = Component.text()
@@ -219,6 +231,7 @@ public class VanishManager {
         }
 
         this.vanishLevels.remove(player.getUniqueId());
+        return true;
     }
 
     public int getVanishLevelOrCalc(Player player) {
