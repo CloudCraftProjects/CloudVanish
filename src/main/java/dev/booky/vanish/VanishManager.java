@@ -176,12 +176,11 @@ public class VanishManager {
             return false;
         }
 
-        Component vanishMessage = Component.text()
+        Component vanishMessage = getPrefix().append(Component.translatable()
                 .color(NamedTextColor.YELLOW)
-                .append(getPrefix())
-                .append(player.teamDisplayName())
-                .append(Component.text(" vanished"))
-                .build();
+                .key("vanish.vanished")
+                .args(player.teamDisplayName())
+                .build());
 
         this.vanishLevels.put(player.getUniqueId(), vanishLevel);
         for (Player viewer : this.getViewers(player)) {
@@ -208,12 +207,11 @@ public class VanishManager {
             return false;
         }
 
-        Component unvanishMessage = Component.text()
+        Component unvanishMessage = getPrefix().append(Component.translatable()
                 .color(NamedTextColor.YELLOW)
-                .append(getPrefix())
-                .append(player.teamDisplayName())
-                .append(Component.text(" unvanished"))
-                .build();
+                .key("vanish.unvanished")
+                .args(player.teamDisplayName())
+                .build());
 
         for (Player viewer : this.getViewers(player)) {
             viewer.sendMessage(unvanishMessage);

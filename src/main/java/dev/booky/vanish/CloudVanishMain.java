@@ -3,6 +3,7 @@ package dev.booky.vanish;
 
 import dev.booky.vanish.listeners.DebugListener;
 import dev.booky.vanish.listeners.JoinQuitListener;
+import dev.booky.vanish.util.TranslationLoader;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -11,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class CloudVanishMain extends JavaPlugin {
 
+    private TranslationLoader i18n;
     private VanishManager manager;
 
     public CloudVanishMain() {
@@ -23,6 +25,7 @@ public class CloudVanishMain extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        (this.i18n = new TranslationLoader(this)).load();
         this.manager = new VanishManager(this);
         new Metrics(this, 16837);
 
@@ -41,8 +44,14 @@ public class CloudVanishMain extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            this.manager.handleQuit(player);
+        try {
+            if (this.manager != null) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    this.manager.handleQuit(player);
+                }
+            }
+        } finally {
+            this.i18n.unload();
         }
     }
 }
