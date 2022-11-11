@@ -5,6 +5,7 @@ import dev.booky.vanish.VanishManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,12 +13,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 
 public class ProtectionListener implements Listener {
 
+    private final NamespacedKey pickupKey;
     private final VanishManager manager;
 
     public ProtectionListener(VanishManager manager) {
+        this.pickupKey = new NamespacedKey(manager.getPlugin(), "pickup");
         this.manager = manager;
     }
 
@@ -59,6 +63,15 @@ public class ProtectionListener implements Listener {
         Component broadcastMessage = VanishManager.getPrefix().append(deathMessage.color(NamedTextColor.YELLOW));
         for (Player viewer : this.manager.getViewers(event.getPlayer())) {
             viewer.sendMessage(broadcastMessage);
+        }
+    }
+
+    @EventHandler
+    public void onItemPickup(PlayerAttemptPickupItemEvent event) {
+        if (this.manager.isVanished(event.getPlayer())) {
+            if (!event.getPlayer().getPersistentDataContainer().has(this.pickupKey)) {
+                event.setCancelled(true);
+            }
         }
     }
 }
