@@ -1,7 +1,7 @@
 package dev.booky.vanish;
 // Created by booky10 in CloudVanish (20:11 09.11.22)
 
-import dev.booky.vanish.listeners.DebugListener;
+import dev.booky.vanish.commands.VanishCommand;
 import dev.booky.vanish.listeners.JoinQuitListener;
 import dev.booky.vanish.util.TranslationLoader;
 import org.bstats.bukkit.Metrics;
@@ -14,6 +14,7 @@ public class CloudVanishMain extends JavaPlugin {
 
     private TranslationLoader i18n;
     private VanishManager manager;
+    private VanishCommand command;
 
     public CloudVanishMain() {
         try {
@@ -30,12 +31,19 @@ public class CloudVanishMain extends JavaPlugin {
         new Metrics(this, 16837);
 
         Bukkit.getServicesManager().register(VanishManager.class, this.manager, this, ServicePriority.Normal);
+
+        if (Bukkit.getPluginManager().getPlugin("CommandAPI") == null) {
+            super.getLogger().severe("###################################################################");
+            super.getLogger().severe("# Install CommandAPI (https://commandapi.jorel.dev/) for commands #");
+            super.getLogger().severe("###################################################################");
+        } else {
+            this.command = new VanishCommand(this.manager);
+        }
     }
 
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(new JoinQuitListener(this.manager), this);
-        Bukkit.getPluginManager().registerEvents(new DebugListener(this.manager), this);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             this.manager.handleLogin(player);
@@ -49,6 +57,10 @@ public class CloudVanishMain extends JavaPlugin {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     this.manager.handleQuit(player);
                 }
+            }
+
+            if (this.command != null) {
+                this.command.unregister();
             }
         } finally {
             this.i18n.unload();

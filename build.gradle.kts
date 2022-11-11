@@ -16,6 +16,8 @@ repositories {
 
 dependencies {
     compileOnlyApi("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
+    compileOnlyApi("dev.jorel:commandapi-core:8.5.1")
+
     api("org.bstats:bstats-bukkit:3.0.0")
 }
 
@@ -35,6 +37,7 @@ bukkit {
     main = "$group.vanish.CloudVanishMain"
     apiVersion = "1.19"
     authors = listOf("booky10")
+    softDepend = listOf("CommandAPI")
 }
 
 tasks {
