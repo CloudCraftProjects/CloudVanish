@@ -176,15 +176,21 @@ public class VanishManager {
             return false;
         }
 
-        Component vanishMessage = getPrefix().append(Component.translatable()
-                .color(NamedTextColor.YELLOW)
+        Component vanishMessage = Component.translatable()
                 .key("vanish.vanished")
                 .args(player.teamDisplayName())
-                .build());
+                .build();
+        Bukkit.getConsoleSender().sendMessage(vanishMessage);
+
+        Component broadcastMessage = Component.text()
+                .color(NamedTextColor.YELLOW)
+                .append(getPrefix())
+                .append(vanishMessage)
+                .build();
 
         this.vanishLevels.put(player.getUniqueId(), vanishLevel);
         for (Player viewer : this.getViewers(player)) {
-            viewer.sendMessage(vanishMessage);
+            viewer.sendMessage(broadcastMessage);
         }
 
         Component joinMsg = Component.translatable()
@@ -207,14 +213,20 @@ public class VanishManager {
             return false;
         }
 
-        Component unvanishMessage = getPrefix().append(Component.translatable()
-                .color(NamedTextColor.YELLOW)
+        Component unvanishMessage = Component.translatable()
                 .key("vanish.unvanished")
                 .args(player.teamDisplayName())
-                .build());
+                .build();
+        Bukkit.getConsoleSender().sendMessage(unvanishMessage);
+
+        Component broadcastMessage = Component.text()
+                .color(NamedTextColor.YELLOW)
+                .append(getPrefix())
+                .append(unvanishMessage)
+                .build();
 
         for (Player viewer : this.getViewers(player)) {
-            viewer.sendMessage(unvanishMessage);
+            viewer.sendMessage(broadcastMessage);
         }
 
         Component joinMsg = Component.translatable()

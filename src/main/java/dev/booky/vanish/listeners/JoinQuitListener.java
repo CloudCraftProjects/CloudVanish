@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -25,7 +26,7 @@ public class JoinQuitListener implements Listener {
         this.manager.handleLogin(event.getPlayer());
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event) {
         // We sadly don't have any event, which is directly executed after the server connection handler
         // has been set (needed for hiding other players), so we have can only hide other players in the join event
@@ -50,16 +51,17 @@ public class JoinQuitListener implements Listener {
 
         Component joinMessage = event.joinMessage();
         if (joinMessage != null) {
+            Bukkit.getConsoleSender().sendMessage(joinMessage);
             event.joinMessage(null);
-            joinMessage = VanishManager.getPrefix().append(joinMessage);
 
+            Component broadcastMessage = VanishManager.getPrefix().append(joinMessage);
             for (Player player : this.manager.getViewers(event.getPlayer())) {
-                player.sendMessage(joinMessage);
+                player.sendMessage(broadcastMessage);
             }
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
         if (!this.manager.isVanished(event.getPlayer())) {
             return;
@@ -67,11 +69,12 @@ public class JoinQuitListener implements Listener {
 
         Component quitMessage = event.quitMessage();
         if (quitMessage != null) {
+            Bukkit.getConsoleSender().sendMessage(quitMessage);
             event.quitMessage(null);
-            quitMessage = VanishManager.getPrefix().append(quitMessage);
 
+            Component broadcastMessage = VanishManager.getPrefix().append(quitMessage);
             for (Player player : this.manager.getViewers(event.getPlayer())) {
-                player.sendMessage(quitMessage);
+                player.sendMessage(broadcastMessage);
             }
         }
         this.manager.handleQuit(event.getPlayer());
