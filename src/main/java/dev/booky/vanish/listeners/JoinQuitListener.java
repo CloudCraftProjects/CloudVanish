@@ -3,6 +3,7 @@ package dev.booky.vanish.listeners;
 
 import dev.booky.vanish.VanishManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -48,6 +49,9 @@ public class JoinQuitListener implements Listener {
         if (!this.manager.isVanished(event.getPlayer())) {
             return;
         }
+
+        event.getPlayer().sendMessage(VanishManager.getPrefix()
+                .append(Component.translatable("vanish.info", NamedTextColor.YELLOW)));
 
         Component joinMessage = event.joinMessage();
         if (joinMessage != null) {
