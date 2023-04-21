@@ -1,6 +1,7 @@
 package dev.booky.vanish.listeners;
 // Created by booky10 in CloudVanish (20:07 11.11.22)
 
+import com.destroystokyo.paper.event.player.PlayerPickupExperienceEvent;
 import dev.booky.vanish.VanishManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -90,6 +91,18 @@ public class ProtectionListener implements Listener {
 
     @EventHandler
     public void onItemPickup(PlayerAttemptPickupItemEvent event) {
+        if (!this.manager.isVanished(event.getPlayer())) {
+            return;
+        }
+        if (event.getPlayer().getPersistentDataContainer().has(this.pickupKey)) {
+            return;
+        }
+
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onExpPickup(PlayerPickupExperienceEvent event) {
         if (!this.manager.isVanished(event.getPlayer())) {
             return;
         }
