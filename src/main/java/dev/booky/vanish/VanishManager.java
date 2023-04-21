@@ -260,7 +260,7 @@ public class VanishManager {
         return this.vanishLevels.containsKey(player.getUniqueId());
     }
 
-    public static Component getPrefix() {
+    public Component getPrefix() {
         return PREFIX;
     }
 

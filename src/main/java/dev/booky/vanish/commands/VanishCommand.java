@@ -3,12 +3,15 @@ package dev.booky.vanish.commands;
 
 import dev.booky.vanish.VanishManager;
 import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPIBukkit;
 import dev.jorel.commandapi.CommandTree;
+import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.LiteralArgument;
-import dev.jorel.commandapi.arguments.PlayerArgument;
+import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
+import dev.jorel.commandapi.executors.CommandArguments;
+import dev.jorel.commandapi.wrappers.NativeProxyCommandSender;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.util.TriState;
 import org.bukkit.Bukkit;
@@ -16,11 +19,13 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@ApiStatus.Internal
 public final class VanishCommand {
 
     private static final String MAIN_NAME = "vanish";
@@ -31,85 +36,89 @@ public final class VanishCommand {
     private final NamespacedKey pickupKey;
     private final VanishManager manager;
 
-    public VanishCommand(VanishManager manager) {
+    private VanishCommand(VanishManager manager) {
         this.pickupKey = new NamespacedKey(manager.getPlugin(), "pickup");
         this.manager = manager;
-        this.register();
     }
 
-    public void register() {
-        new CommandTree(MAIN_NAME)
-                .withAliases(ALIASES.toArray(String[]::new))
-                .withPermission("cloudvanish.command")
-                .executesPlayer((Player player, Object[] args) -> toggleVanish(player, player))
-                .then(new PlayerArgument("target")
-                        .withPermission("cloudvanish.command.other")
-                        .executes((CommandSender sender, Object[] args) -> toggleVanish(sender, (Player) args[0])))
-                .then(new LiteralArgument("pickup")
-                        .withPermission("cloudvanish.command.pickup")
-                        .executesPlayer((Player player, Object[] args) -> togglePickup(player, player))
-                        .then(new PlayerArgument("target")
-                                .withPermission("cloudvanish.command.pickup.other")
-                                .executes((CommandSender sender, Object[] args) -> togglePickup(sender, (Player) args[0]))))
-                .then(new LiteralArgument("list")
-                        .withPermission("cloudvanish.command.list")
-                        .executes((CommandSender sender, Object[] args) -> listVanished(sender)))
-                .register();
+    public static void create(VanishManager manager) {
+        VanishCommand command = new VanishCommand(manager);
+        command.unregister();
+        command.register();
     }
 
-    public void unregister() {
+    private WrapperCommandSyntaxException fail(Component message) {
+        return CommandAPIBukkit.failWithAdventureComponent(this.manager.getPrefix()
+                .append(message.colorIfAbsent(NamedTextColor.RED)));
+    }
+
+    private void success(CommandSender sender, Component message) {
+        sender.sendMessage(this.manager.getPrefix()
+                .append(message.colorIfAbsent(NamedTextColor.YELLOW)));
+    }
+
+    private void unregister() {
         for (String alias : ALL_ALIASES) {
             CommandAPI.unregister(alias, true);
         }
     }
 
-    private void toggleVanish(CommandSender sender, Player player) {
-        boolean couldSee = sender instanceof Player && ((Player) sender).canSee(player);
+    private void register() {
+        new CommandTree(MAIN_NAME)
+                .withAliases(ALIASES.toArray(String[]::new))
+                .withPermission("cloudvanish.command")
+                .then(new EntitySelectorArgument.OnePlayer("target").setOptional(true)
+                        .withPermission("cloudvanish.command.other")
+                        .executesNative(this::toggleVanish))
+                .then(new LiteralArgument("pickup")
+                        .withPermission("cloudvanish.command.pickup")
+                        .then(new EntitySelectorArgument.OnePlayer("target").setOptional(true)
+                                .withPermission("cloudvanish.command.pickup.other")
+                                .executesNative(this::togglePickup)))
+                .then(new LiteralArgument("list")
+                        .withPermission("cloudvanish.command.list")
+                        .executesNative(this::listVanished))
+                .register();
+    }
+
+    private void toggleVanish(NativeProxyCommandSender sender, CommandArguments args) throws WrapperCommandSyntaxException {
+        Player player = args.getOrDefaultUnchecked("target", () -> (Player) sender.getCallee());
+        boolean couldSee = sender.getCallee() instanceof Player && ((Player) sender.getCallee()).canSee(player);
         TriState result = this.manager.toggleVanish(player);
 
-        // We only have to cover this case, otherwise a "broadcast" message will be sent anyway
+        // only have to cover this case, otherwise a "broadcast" message will be sent anyway
         if (result == TriState.NOT_SET) {
-            sender.sendMessage(VanishManager.getPrefix().append(Component.translatable("vanish.command.toggle.fail", NamedTextColor.RED)));
-            return;
+            throw this.fail(Component.translatable("vanish.command.toggle.fail"));
         }
 
         // check if the target is the same as the sender, or if the sender isn't an actual player
-        if (sender == player || !(sender instanceof Player playerSender)) {
+        if (sender.getCaller() == player || !(sender.getCaller() instanceof Player playerSender)) {
             return;
         }
 
         if (result == TriState.TRUE) { // vanished
             if (!playerSender.canSee(player)) {
-                sender.sendMessage(VanishManager.getPrefix()
-                        .append(Component.translatable()
-                                .color(NamedTextColor.YELLOW)
-                                .key("vanish.vanished")
-                                .args(player.teamDisplayName())
-                                .build()));
+                this.success(sender, Component.translatable("vanish.vanished", player.teamDisplayName()));
             }
         } else if (!couldSee) { // unvanished
-            sender.sendMessage(VanishManager.getPrefix()
-                    .append(Component.translatable()
-                            .color(NamedTextColor.YELLOW)
-                            .key("vanish.unvanished")
-                            .args(player.teamDisplayName())
-                            .build()));
+            this.success(sender, Component.translatable("vanish.unvanished", player.teamDisplayName()));
         }
     }
 
-    private void togglePickup(CommandSender sender, Player player) {
+    private void togglePickup(NativeProxyCommandSender sender, CommandArguments args) {
+        Player player = args.getOrDefaultUnchecked("target", () -> (Player) sender.getCallee());
         if (player.getPersistentDataContainer().has(this.pickupKey)) {
             player.getPersistentDataContainer().remove(this.pickupKey);
-            sender.sendMessage(VanishManager.getPrefix().append(Component.translatable("vanish.command.pickup.off", NamedTextColor.YELLOW)));
+            this.success(sender, Component.translatable("vanish.command.pickup.off"));
         } else {
             player.getPersistentDataContainer().set(this.pickupKey, PersistentDataType.BYTE, (byte) 0);
-            sender.sendMessage(VanishManager.getPrefix().append(Component.translatable("vanish.command.pickup.on", NamedTextColor.YELLOW)));
+            this.success(sender, Component.translatable("vanish.command.pickup.on"));
         }
     }
 
-    private void listVanished(CommandSender sender) {
+    private void listVanished(NativeProxyCommandSender sender, CommandArguments args) {
         TextComponent.Builder message = Component.text();
-        int vanishLevel = sender instanceof Player ? this.manager.getVanishLevelOrCalc((Player) sender) : 1337;
+        int vanishLevel = sender.getCaller() instanceof Player player ? this.manager.getVanishLevelOrCalc(player) : 1337;
         int playerCount = 0;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -129,21 +138,14 @@ public final class VanishCommand {
 
             playerCount++;
             message.append(player.teamDisplayName()
-                    .hoverEvent(HoverEvent.showText(Component.translatable()
-                            .key("vanish.command.list.level")
-                            .color(NamedTextColor.AQUA)
-                            .args(Component.text(level)))));
+                    .colorIfAbsent(NamedTextColor.WHITE)
+                    .hoverEvent(Component.translatable(
+                            "vanish.command.list.level", NamedTextColor.AQUA, Component.text(level))));
         }
 
         String key = playerCount == 0 ? "vanish.command.list.none"
                 : playerCount == 1 ? "vanish.command.list.one"
                 : "vanish.command.list.multiple";
-
-        sender.sendMessage(Component.text()
-                .color(NamedTextColor.YELLOW)
-                .append(VanishManager.getPrefix())
-                .append(Component.translatable(key, Component.text(playerCount), message))
-                .build()
-        );
+        this.success(sender, Component.translatable(key, Component.text(playerCount), message));
     }
 }

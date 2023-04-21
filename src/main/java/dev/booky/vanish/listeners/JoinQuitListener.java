@@ -50,7 +50,7 @@ public class JoinQuitListener implements Listener {
             return;
         }
 
-        event.getPlayer().sendMessage(VanishManager.getPrefix()
+        event.getPlayer().sendMessage(this.manager.getPrefix()
                 .append(Component.translatable("vanish.info", NamedTextColor.YELLOW)));
 
         Component joinMessage = event.joinMessage();
@@ -58,7 +58,7 @@ public class JoinQuitListener implements Listener {
             Bukkit.getConsoleSender().sendMessage(joinMessage);
             event.joinMessage(null);
 
-            Component broadcastMessage = VanishManager.getPrefix().append(joinMessage);
+            Component broadcastMessage = this.manager.getPrefix().append(joinMessage);
             for (Player player : this.manager.getViewers(event.getPlayer())) {
                 player.sendMessage(broadcastMessage);
             }
@@ -76,7 +76,7 @@ public class JoinQuitListener implements Listener {
             Bukkit.getConsoleSender().sendMessage(quitMessage);
             event.quitMessage(null);
 
-            Component broadcastMessage = VanishManager.getPrefix().append(quitMessage);
+            Component broadcastMessage = this.manager.getPrefix().append(quitMessage);
             for (Player player : this.manager.getViewers(event.getPlayer())) {
                 player.sendMessage(broadcastMessage);
             }

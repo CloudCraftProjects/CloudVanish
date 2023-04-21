@@ -82,7 +82,7 @@ public class ProtectionListener implements Listener {
         Bukkit.getConsoleSender().sendMessage(deathMessage);
         event.deathMessage(null);
 
-        Component broadcastMessage = VanishManager.getPrefix().append(deathMessage.color(NamedTextColor.YELLOW));
+        Component broadcastMessage = this.manager.getPrefix().append(deathMessage.color(NamedTextColor.YELLOW));
         for (Player viewer : this.manager.getViewers(event.getPlayer())) {
             viewer.sendMessage(broadcastMessage);
         }
