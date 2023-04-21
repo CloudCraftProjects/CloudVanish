@@ -8,6 +8,7 @@ import net.kyori.adventure.util.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
@@ -70,6 +71,7 @@ public class VanishManager {
         int vanishLevel = this.readVanishLevel(player);
         if (vanishLevel > 0) {
             this.vanishLevels.put(player.getUniqueId(), vanishLevel);
+            player.setMetadata("vanished", new FixedMetadataValue(this.plugin, null));
 
             for (Player nonViewer : this.getNonViewers0(player, vanishLevel)) {
                 nonViewer.hidePlayer(this.plugin, player);
@@ -82,6 +84,7 @@ public class VanishManager {
         Integer level = this.vanishLevels.remove(player.getUniqueId());
         if (level != null) {
             player.getPersistentDataContainer().set(this.vanishedKey, PersistentDataType.BYTE, (byte) 0);
+            player.removeMetadata("vanished", this.plugin);
         }
     }
 
@@ -189,6 +192,8 @@ public class VanishManager {
                 .build();
 
         this.vanishLevels.put(player.getUniqueId(), vanishLevel);
+        player.setMetadata("vanished", new FixedMetadataValue(this.plugin, null));
+
         for (Player viewer : this.getViewers(player)) {
             viewer.sendMessage(broadcastMessage);
         }
@@ -241,6 +246,7 @@ public class VanishManager {
         }
 
         this.vanishLevels.remove(player.getUniqueId());
+        player.removeMetadata("vanished", this.plugin);
         return true;
     }
 
