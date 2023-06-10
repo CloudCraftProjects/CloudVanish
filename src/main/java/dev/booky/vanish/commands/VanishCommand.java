@@ -82,7 +82,7 @@ public final class VanishCommand {
     }
 
     private void toggleVanish(NativeProxyCommandSender sender, CommandArguments args) throws WrapperCommandSyntaxException {
-        Player player = args.getOrDefaultUnchecked("target", () -> (Player) sender.getCallee());
+        Player player = args.<Player>getOptionalUnchecked("target").orElseGet(() -> (Player) sender.getCallee());
         boolean couldSee = sender.getCallee() instanceof Player && ((Player) sender.getCallee()).canSee(player);
         TriState result = this.manager.toggleVanish(player);
 
@@ -106,7 +106,7 @@ public final class VanishCommand {
     }
 
     private void togglePickup(NativeProxyCommandSender sender, CommandArguments args) {
-        Player player = args.getOrDefaultUnchecked("target", () -> (Player) sender.getCallee());
+        Player player = args.<Player>getOptionalUnchecked("target").orElseGet(() -> (Player) sender.getCallee());
         if (player.getPersistentDataContainer().has(this.pickupKey)) {
             player.getPersistentDataContainer().remove(this.pickupKey);
             this.success(sender, Component.translatable("vanish.command.pickup.off"));
