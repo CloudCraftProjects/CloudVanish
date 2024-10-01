@@ -50,7 +50,7 @@ bukkit {
     main = "$group.vanish.CloudVanishMain"
     apiVersion = "1.20"
     authors = listOf("booky10")
-    depend = listOf("CloudCore")
+    depend = listOf("CloudCore", "CommandAPI")
 }
 
 tasks {
