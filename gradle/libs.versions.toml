@@ -1,0 +1,23 @@
+[versions]
+pluginyml = "0.6.0"
+runtask = "2.3.1"
+shadow = "8.3.0"
+
+paper = "1.21.1-R0.1-SNAPSHOT"
+bstats = "3.1.0"
+
+cloudcore = "1.1.0-SNAPSHOT"
+commandapi = "9.5.3"
+
+[plugins]
+pluginyml-bukkit = { id = "net.minecrell.plugin-yml.bukkit", version.ref = "pluginyml" }
+runtask-paper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+
+[libraries]
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+bstats-bukkit = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
+
+cloudcore = { module = "dev.booky:cloudcore", version.ref = "cloudcore" }
+commandapi-bukkit-core = { module = "dev.jorel:commandapi-bukkit-core", version.ref = "commandapi" }
+commandapi-bukkit-plugin = { module = "dev.jorel:commandapi-bukkit-plugin", version.ref = "commandapi" }

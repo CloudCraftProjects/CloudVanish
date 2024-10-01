@@ -2,47 +2,41 @@ plugins {
     id("java-library")
     id("maven-publish")
 
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.3"
-    id("xyz.jpenilla.run-paper") version "1.0.6"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.pluginyml.bukkit)
+    alias(libs.plugins.runtask.paper)
+    alias(libs.plugins.shadow)
 }
 
 group = "dev.booky"
-version = "1.1.0"
+version = "1.1.1-SNAPSHOT"
 
 val plugin: Configuration by configurations.creating {
     isTransitive = false
 }
 
 repositories {
-    // TODO: find an actual repository for this
-    mavenLocal {
-        content {
-            includeGroup("dev.booky")
-        }
-    }
-
-    maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.cloudcraftmc.de/public/")
 }
 
-val cloudCoreVersion = "1.0.0"
-
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT")
+    compileOnly(libs.paper.api)
 
-    implementation("org.bstats:bstats-bukkit:3.0.2")
+    implementation(libs.bstats.bukkit)
 
-    // needs to be published to maven local manually
-    compileOnlyApi("dev.booky:cloudcore:$cloudCoreVersion")
+    compileOnlyApi(libs.cloudcore)
+    compileOnly(libs.commandapi.bukkit.core)
 
     // testserver dependency plugins
-    plugin("dev.booky:cloudcore:$cloudCoreVersion:all")
-    plugin("dev.jorel:commandapi-bukkit-plugin:9.0.2")
+    plugin(variantOf(libs.cloudcore) {classifier("all")})
+    plugin(libs.commandapi.bukkit.plugin)
 }
 
 java {
     withSourcesJar()
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
 }
 
 publishing {
@@ -54,14 +48,14 @@ publishing {
 
 bukkit {
     main = "$group.vanish.CloudVanishMain"
-    apiVersion = "1.19"
+    apiVersion = "1.20"
     authors = listOf("booky10")
     depend = listOf("CloudCore")
 }
 
 tasks {
     runServer {
-        minecraftVersion("1.20")
+        minecraftVersion("1.21.1")
         pluginJars.from(plugin.resolve())
     }
 
