@@ -3,7 +3,6 @@ package dev.booky.vanish;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.util.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -22,19 +21,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+
 public class VanishManager {
 
-    // <gray>[<gradient:#3bd151:#2ea640>Vanish</gradient>]</gray><space>
-    private static final Component PREFIX = Component.text()
-            .append(Component.text('[', NamedTextColor.GRAY))
-            .append(Component.text('V', TextColor.color(0x3bd151)))
-            .append(Component.text('a', TextColor.color(0x39ca4e)))
-            .append(Component.text('n', TextColor.color(0x37c34b)))
-            .append(Component.text('i', TextColor.color(0x35bc49)))
-            .append(Component.text('s', TextColor.color(0x32b446)))
-            .append(Component.text('h', TextColor.color(0x30ad43)))
-            .append(Component.text(']', NamedTextColor.GRAY))
-            .append(Component.space()).build();
+    private static final Component PREFIX = Component.empty()
+            .append(miniMessage().deserialize("<gray>[<gradient:#3bd151:#2ea640>Vanish</gradient>] </gray>"))
+            .compact();
 
     private final Map<UUID, Integer> vanishLevels = new HashMap<>();
     private final NamespacedKey vanishedKey;
@@ -181,7 +174,7 @@ public class VanishManager {
 
         Component vanishMessage = Component.translatable()
                 .key("vanish.vanished")
-                .args(player.teamDisplayName())
+                .arguments(player.teamDisplayName())
                 .build();
         Bukkit.getConsoleSender().sendMessage(vanishMessage);
 
@@ -202,7 +195,7 @@ public class VanishManager {
                 .color(NamedTextColor.YELLOW)
                 .key("multiplayer.player.left")
                 // We sadly can't use the team name, because it has a prefix because of CloudChat
-                .args(Component.text(player.getName())).build();
+                .arguments(Component.text(player.getName())).build();
 
         for (Player nonViewer : this.getNonViewers(player)) {
             nonViewer.sendMessage(joinMsg);
@@ -220,7 +213,7 @@ public class VanishManager {
 
         Component unvanishMessage = Component.translatable()
                 .key("vanish.unvanished")
-                .args(player.teamDisplayName())
+                .arguments(player.teamDisplayName())
                 .build();
         Bukkit.getConsoleSender().sendMessage(unvanishMessage);
 
@@ -238,7 +231,7 @@ public class VanishManager {
                 .color(NamedTextColor.YELLOW)
                 .key("multiplayer.player.joined")
                 // We sadly can't use the team name, because it has a prefix because of CloudChat
-                .args(Component.text(player.getName())).build();
+                .arguments(Component.text(player.getName())).build();
 
         for (Player nonViewer : this.getNonViewers(player)) {
             nonViewer.sendMessage(joinMsg);
