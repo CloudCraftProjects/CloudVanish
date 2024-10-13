@@ -62,6 +62,11 @@ tasks {
         pluginJars.from(plugin.resolve())
     }
 
+    withType<Jar> {
+        // no spigot mappings are used, disable useless remapping step
+        manifest.attributes("paperweight-mappings-namespace" to "mojang")
+    }
+
     shadowJar {
         relocate("org.bstats", "dev.booky.vanish.bstats")
     }
